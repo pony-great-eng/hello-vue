@@ -1,36 +1,33 @@
 <template>
-    <h3>{{name}}</h3>
-    <UserProfile />
-  
+  <div class="page">
+    <div class="page-header">
+      <h3 class="brand">{{ name }}</h3>
+      <div class="menu">
+        <router-link class="menu-item" to="/">首页</router-link>
+        <router-link class="menu-item" :to="{ name: 'about' }"
+          >关于</router-link
+        >
+        <router-link class="menu-item" :to="{ name: 'postIndex' }"
+          >内容</router-link
+        >
+      </div>
+    </div>
+    <div class="page-body">
+      <router-view></router-view>
+    </div>
+  </div>
 </template>
 
 <script>
-import UserProfile from './components/user-profile';
-
 export default {
-    data (){
-        return {
-            name:'宁浩网',
-        };
-    },
-
-methods:{
-onTapAppButton(text) {
-    console.log('on tap app button');
-},
-
-onInitAppButton(){
-    console.log('on init app button')
-}
-},
-
-   components:{UserProfile},
-
-}
+  data() {
+    return {
+      name: '宁浩网',
+    };
+  },
+};
 </script>
 
 <style>
-
-
 @import './styles/app.css';
 </style>
