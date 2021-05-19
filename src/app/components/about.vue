@@ -6,16 +6,20 @@
         <div class="card-subtitle">Transition & Animation</div>
       </div>
       <div class="card_content">
-        <transition
-          name="custom-classes"
-          enter-active-class="animate__animated animate__tada"
-          leave-active-class="animate__animated animate__bounce"
+        <transition-group
+          name="custom"
+          leave-active-class="animate__animated animate__tada"
         >
-          <div v-if="isActive" class="emoji">🆚</div>
-        </transition>
+          <div class="emoji" v-for="emoji in emojiList" :key="emoji">
+            {{ emoji }}
+          </div>
+        </transition-group>
       </div>
       <div class="card_action">
-        <button @click="isActive = !isActive" :class="{ active: isActive }">
+        <button @click="shuffle" :class="{ active: isActive }">
+          请按这里
+        </button>
+        <button @click="pop">
           请按这里
         </button>
       </div>
@@ -27,12 +31,24 @@
 </template>
 
 <script>
+import _ from 'lodash';
 export default {
   data() {
     return {
       name: '宁浩网创建于2020年',
       isActive: true,
+      emojiList: ['🧭', '🌎', '🌈'],
     };
+  },
+
+  methods: {
+    shuffle() {
+      this.emojiList = _.shuffle(this.emojiList);
+    },
+
+    pop() {
+      this.emojiList.pop();
+    },
   },
 };
 </script>
