@@ -1,93 +1,89 @@
 <template>
-    <h3>{{name}}</h3>
-    <!-- {{processStatus}}
-    <button v-on:click="resetName">重置</button>
-    <button @click="setName">设置</button> -->
-    <!-- <div v-for="(post, index) in postList" :key ="post.id">
-        {{index+1}} {{post.content}} - <small>{{post.author}}</small>
-    </div> -->
-    <!-- <div v-if="visible">隐藏的内容！</div>
-    <button @click="visible = !visible">{{ visible ? '隐藏' : '显示'}}</button> -->
-    <div class="menu">
-        <div 
-        :class="['menu-item',{active: currentItem === index}]"
-        @click="currentItem = index"
-        v-for="(item, index) in menuItems" :key="index"
-        >
-        {{item}}
-        </div>
-    </div>
+  <h3 @click="changeName">{{ nameEmoji }}</h3>
+  <div @click="username = 'wanghao'">{{ username }}</div>
 </template>
 
 <script>
+import { ref, reactive, toRefs, onMounted, watch, computed } from 'vue';
+
 export default {
-    data (){
-        return {
-            name:'宁浩网',
-            menuItems:['首页','热门','发布'],
-            currentItem:0,
+  //组合式组件
 
-            // visible:false,
+  setup() {
+    const name = ref('宁浩网');
 
-            // postList:[
-            //     {
-            //         id:1,
-            //         content:'故人西辞黄鹤去，白云千载空悠悠',
-            //         author:'李白',
-            //     },
-            //     {
-            //         id:2,
-            //         content:'好雨知时节，当春乃发生',
-            //         author:'杜甫',
-            //     },
-            //     {
-            //         id:3,
-            //         content:'莫听穿林打叶声，何妨吟啸且徐行',
-            //         author:'苏轼',
-            //     },
+    const user = reactive({
+      username: '王皓',
+    });
 
-            // ],
-        };
-    },
+    const changeName = () => {
+      name.value = 'NINGHAO';
+    };
+    //const { username } = toRefs(user);
 
-    // computed:{
-    //     processStatus(){
-    //         return this.name ==='NINGHAO' ? '初始化...' : '成功设置了数据！';
-    //     }
-    // },
+    //生命周期
+    onMounted(() => {
+      console.log('mounted');
+    });
 
-    // watch:{
-    //     name(newName, oldName) {
-    //         console.log(`name 发生了变化: ${oldName} -> ${newName}`);
-    //     }
+    //监视数据
+    watch(name, (newName, oldName) => {
+      console.log(newName, oldName);
+    });
 
-    // },
+    //计算属性
+    const nameEmoji = computed(() => `${name.value}🌤️`);
+    return {
+      name,
+      ...toRefs(user),
+      changeName,
+      nameEmoji,
+    };
+  },
+  //   data() {
+  //     return {
+  //       name: '宁浩网',
+  //     };
+  //   },
 
-    // created() {
-    //     console.log('app组件已创建');
+  //   created() {
+  //     console.log(this.$data);
+  //   },
 
-    //     this.setName();
-    // },
+  //   created() {
+  //     const user = {
+  //       name: '宁浩网',
+  //     };
 
-    // methods:{
-    //     setName(){
-    //           setTimeout(() => {
-    //         this.name ='宁浩网';
-    //     },3000);
-    //     },
+  //     const handler = {
+  //       get(target, property) {
+  //         return target[property];
+  //       },
 
-    //     resetName(){
-    //         this.name="NINGHAO";
-    //     }
-    // }
+  //       set(target, property, value) {
+  //         if (property === 'name') {
+  //           if (value.length > 10) {
+  //             throw new Error('名字太长了');
+  //           }
+  //         }
 
-}
+  //         return Reflect.set(target, property, value);
+  //       },
+  //     };
+
+  //     const userProxy = new Proxy(user, handler);
+
+  //     try {
+  //       userProxy.name = 'NINGHAO';
+  //     } catch (error) {
+  //       console.log('错误：', error.message);
+  //     }
+
+  //     console.log(userProxy.name);
+  //   },
+};
 </script>
 
 <style>
-/* button {
-    margin:4px;
-} */
-
 @import './styles/app.css';
 </style>
