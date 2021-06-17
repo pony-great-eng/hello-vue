@@ -1,87 +1,144 @@
 <template>
-    <h3>{{name}}</h3>
-    <!-- {{processStatus}}
-    <button v-on:click="resetName">重置</button>
-    <button @click="setName">设置</button> -->
-    <!-- <div v-for="(post, index) in postList" :key ="post.id">
-        {{index+1}} {{post.content}} - <small>{{post.author}}</small>
-    </div> -->
-    <!-- <div v-if="visible">隐藏的内容！</div>
-    <button @click="visible = !visible">{{ visible ? '隐藏' : '显示'}}</button> -->
-    <div class="menu">
-        <div 
-        :class="['menu-item',{active: currentItem === index}]"
-        @click="currentItem = index"
-        v-for="(item, index) in menuItems" :key="index"
-        >
-        {{item}}
-        </div>
+  <h3>{{ name }}</h3>
+  <div>{{ errorMessage }}</div>
+  <div class="menu">
+    <div
+      :class="['menu-item', { active: currentItem === index }]"
+      @click="currentItem = index"
+      v-for="(item, index) in menuItems"
+      :key="index"
+    >
+      {{ item }}
     </div>
+  </div>
+
+  <input type="text" v-model="title" @keyup.enter="createPost" />
+
+  <div v-for="post in posts" :key="post.id">
+    <input
+      type="text"
+      :value="post.title"
+      @keyup.enter="updatePost($event, post.id)"
+    />
+    <button @click="deletePost(post.id)">删除</button>
+    {{ post.title }} -
+    <small>{{ post.user.name }}</small>
+  </div>
 </template>
 
 <script>
+import { axios, apiHttpClient } from '@/app/app.service';
+
 export default {
-    data (){
-        return {
-            name:'宁浩网',
-            menuItems:['首页','热门','发布'],
-            currentItem:0,
+  data() {
+    return {
+      name: '宁浩网',
+      menuItems: ['首页', '热门', '发布'],
+      currentItem: 0,
+      posts: [],
+      user: {
+        name: '苏东坡',
+        password: '123456789',
+      },
+      token: '',
+      title: '',
+    };
+  },
 
-            // visible:false,
+  // created() {
+  //   axios
+  //     .get('http://localhost:3000/posts1')
+  //     .then(response => {
+  //       console.log(response);
+  //       this.posts = response.data;
+  //     })
+  //     .catch(error => {
+  //       console.log(error.message);
+  //       console.log(error.response);
 
-            // postList:[
-            //     {
-            //         id:1,
-            //         content:'故人西辞黄鹤去，白云千载空悠悠',
-            //         author:'李白',
-            //     },
-            //     {
-            //         id:2,
-            //         content:'好雨知时节，当春乃发生',
-            //         author:'杜甫',
-            //     },
-            //     {
-            //         id:3,
-            //         content:'莫听穿林打叶声，何妨吟啸且徐行',
-            //         author:'苏轼',
-            //     },
+  //       this.errorMessage = error.message;
+  //     });
+  // },
 
-            // ],
-        };
+  async created() {
+    this.getPosts();
+    //用户登录
+    try {
+      const response = await apiHttpClient.post('/login', this.user);
+      this.token = response.data.token;
+      console.log(response.data);
+    } catch (error) {
+      this.errorMessage = error.message;
+    }
+  },
+
+  methods: {
+    async deletePost(postId) {
+      try {
+        await apiHttpClient.delete(`/posts/${postId}`, {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
+        });
+        this.getPosts();
+      } catch (error) {
+        this.errorMessage = error.message;
+      }
     },
 
-    // computed:{
-    //     processStatus(){
-    //         return this.name ==='NINGHAO' ? '初始化...' : '成功设置了数据！';
-    //     }
-    // },
+    async updatePost(event, postId) {
+      console.log(event.target.value);
+      console.log(postId);
 
-    // watch:{
-    //     name(newName, oldName) {
-    //         console.log(`name 发生了变化: ${oldName} -> ${newName}`);
-    //     }
+      try {
+        await apiHttpClient.patch(
+          `/posts/${postId}`,
+          {
+            title: event.target.value,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${this.token}`,
+            },
+          },
+        );
+        this.getPosts();
+      } catch (error) {
+        this.errorMessage = error.message;
+      }
+    },
 
-    // },
+    async getPosts() {
+      try {
+        const response = await apiHttpClient.get('/posts');
+        this.posts = response.data;
+      } catch (error) {
+        this.errorMessage = error.message;
+      }
+    },
 
-    // created() {
-    //     console.log('app组件已创建');
-
-    //     this.setName();
-    // },
-
-    // methods:{
-    //     setName(){
-    //           setTimeout(() => {
-    //         this.name ='宁浩网';
-    //     },3000);
-    //     },
-
-    //     resetName(){
-    //         this.name="NINGHAO";
-    //     }
-    // }
-
-}
+    async createPost() {
+      try {
+        const response = await apiHttpClient.post(
+          '/posts',
+          {
+            title: this.title,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${this.token}`,
+            },
+          },
+        );
+        console.log(response.data);
+        this.title = '';
+        this.getPosts();
+      } catch (error) {
+        this.errorMessage = error.message;
+      }
+    },
+  },
+};
 </script>
 
 <style>
