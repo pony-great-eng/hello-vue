@@ -11,8 +11,24 @@
       {{ item }}
     </div>
   </div>
+  <UserLogin
+    v-if="!isLoggedIn"
+    @login-success="onLoginSuccess"
+    @login-error="onLoginError"
+  />
 
-  <input type="text" v-model="title" @keyup.enter="createPost" />
+  <div v-if="currentUser">
+    <div>{{ currentUser.name }}</div>
+    <button @click="logout">退出</button>
+  </div>
+
+  <input
+    v-if="isLoggedIn"
+    type="text"
+    v-model="title"
+    @keyup.enter="createPost"
+    placeholder="输入内容标题"
+  />
 
   <div v-for="post in posts" :key="post.id">
     <input
@@ -28,6 +44,7 @@
 
 <script>
 import { axios, apiHttpClient } from '@/app/app.service';
+import UserLogin from '@/user/components/user-login.vue';
 
 export default {
   data() {
@@ -36,43 +53,63 @@ export default {
       menuItems: ['首页', '热门', '发布'],
       currentItem: 0,
       posts: [],
-      user: {
-        name: '苏东坡',
-        password: '123456789',
-      },
       token: '',
       title: '',
+      currentUser: null,
     };
   },
 
-  // created() {
-  //   axios
-  //     .get('http://localhost:3000/posts1')
-  //     .then(response => {
-  //       console.log(response);
-  //       this.posts = response.data;
-  //     })
-  //     .catch(error => {
-  //       console.log(error.message);
-  //       console.log(error.response);
-
-  //       this.errorMessage = error.message;
-  //     });
-  // },
+  computed: {
+    isLoggedIn() {
+      return this.token ? true : false;
+    },
+  },
 
   async created() {
     this.getPosts();
-    //用户登录
-    try {
-      const response = await apiHttpClient.post('/login', this.user);
-      this.token = response.data.token;
-      console.log(response.data);
-    } catch (error) {
-      this.errorMessage = error.message;
+
+    const tid = localStorage.getItem('tid');
+    const uid = localStorage.getItem('uid');
+
+    if (tid) {
+      this.token = tid;
+    }
+
+    if (uid) {
+      this.getCurrentUser(uid);
     }
   },
 
   methods: {
+    logout() {
+      this.token = '';
+      this.currentUser = null;
+
+      localStorage.removeItem('tid');
+      localStorage.removeItem('uid');
+    },
+
+    async getCurrentUser(userId) {
+      try {
+        const response = await apiHttpClient.get(`/users/${userId}`);
+
+        this.currentUser = response.data;
+      } catch (error) {
+        this.errorMessage = error.message;
+      }
+    },
+    onLoginSuccess(data) {
+      this.token = data.token;
+      this.getCurrentUser(data.id);
+
+      localStorage.setItem('tid', data.token);
+      localStorage.setItem('uid', data.id);
+    },
+
+    onLoginError(error) {
+      this.errorMessage = error.data.message;
+    },
+
     async deletePost(postId) {
       try {
         await apiHttpClient.delete(`/posts/${postId}`, {
@@ -137,6 +174,10 @@ export default {
         this.errorMessage = error.message;
       }
     },
+  },
+
+  components: {
+    UserLogin,
   },
 };
 </script>
