@@ -30,6 +30,31 @@
     placeholder="输入内容标题"
   />
 
+  <input
+    type="file"
+    ref="file"
+    @change="onChangeFile"
+    accept="image/png,image/jpeg,image/jpg"
+  />
+
+  <div
+    :class="['drag-zone', { active: dragZoneActive }]"
+    @dragover.prevent
+    @drop.prevent="onDropDragZone"
+    @dragenter="dragZoneActive = true"
+    @dragleave="dragZoneActive = false"
+  >
+    <div>把图像文件拖放到这里</div>
+  </div>
+
+  <div v-if="imageUploadProgress">
+    <span class="image-upload-progress">{{ imageUploadProgress + '%' }}</span>
+  </div>
+
+  <div v-if="imagePreviewUrl">
+    <img class="image-preview" :src="imagePreviewUrl" />
+  </div>
+
   <div v-for="post in posts" :key="post.id">
     <input
       type="text"
@@ -56,6 +81,10 @@ export default {
       token: '',
       title: '',
       currentUser: null,
+      file: null,
+      imagePreviewUrl: null,
+      imageUploadProgress: null,
+      dragZoneActive: false,
     };
   },
 
@@ -81,6 +110,84 @@ export default {
   },
 
   methods: {
+    onDropDragZone(event) {
+      console.log(event.dataTransfer.files);
+
+      this.dragZoneActive = false;
+
+      const file = event.dataTransfer.files[0];
+
+      if (file) {
+        this.file = file;
+        //设置内容标题
+        this.title = file.name.split('.')[0];
+
+        //生成预览
+        this.createImagePreview(file);
+      }
+    },
+
+    async createFile(file, postId) {
+      //创建表单
+      const formData = new FormData();
+
+      //添加字段
+      formData.append('file', file);
+
+      //上传文件
+      try {
+        const response = await apiHttpClient.post(
+          `/files?post=${postId}`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${this.token}`,
+            },
+            onUploadProgress: event => {
+              console.log(event);
+
+              const { loaded, total } = event;
+
+              this.imageUploadProgress = Math.round((loaded * 100) / total);
+            },
+          },
+        );
+
+        //清理
+        this.file = null;
+        this.imagePreviewUrl = null;
+        this.$refs.file.value = '';
+        this.imageUploadProgress = null;
+
+        console.log(response.data);
+      } catch (error) {
+        this.errorMessage = error.message;
+      }
+    },
+    createImagePreview(file) {
+      const reader = new FileReader();
+
+      reader.readAsDataURL(file);
+
+      reader.onload = event => {
+        this.imagePreviewUrl = event.target.result;
+      };
+    },
+
+    onChangeFile(event) {
+      console.log(event.target.files);
+      const file = event.target.files[0];
+
+      if (file) {
+        this.file = file;
+
+        this.title = file.name.split('.')[0];
+
+        //生成预览图
+        this.createImagePreview(file);
+      }
+    },
+
     logout() {
       this.token = '';
       this.currentUser = null;
@@ -168,6 +275,11 @@ export default {
           },
         );
         console.log(response.data);
+
+        if (this.file) {
+          this.createFile(this.file, response.data.insertId);
+        }
+
         this.title = '';
         this.getPosts();
       } catch (error) {

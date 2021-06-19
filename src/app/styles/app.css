@@ -20,3 +20,28 @@ select {
 label {
   margin-left: 4px;
 }
+
+.image-preview {
+  max-width: 360px;
+}
+
+.image-up-progress {
+  font-size: 32px;
+  font-weight: 300;
+}
+
+.drag-zone {
+  width: 360px;
+  height: 250px;
+  background: #f8f8f8;
+  color: #ababab;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.drag-zone.active {
+  background: #83c7f7;
+  color: #1790e9;
+}
